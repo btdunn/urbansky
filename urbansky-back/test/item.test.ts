@@ -1,5 +1,6 @@
 import { beforeEach, expect, test } from 'vitest'
 
+import { Item } from '../src/models/Item'
 import app from '../src/app'
 import config from '../knexfile'
 import { knex } from 'knex'
@@ -51,4 +52,25 @@ test('POST /api/items', async () => {
 
   const response = await request(app).post('/api/items').send(testItem)
   expect(response.body.data).toMatchObject(testItem)
+})
+
+test('DELETE /api/items/:id', async () => {
+  const items = await request(app).get('/api/items')
+  const item = items.body.data[0]
+  await request(app).delete(`/api/items/${item.id}`)
+  
+  const itemsAfterDelete = await request(app).get('/api/items')
+  const result = itemsAfterDelete.body.data.find((itemAfterDelete: Item) => itemAfterDelete.id === item.id)
+  expect(result).toBeUndefined()
+})
+
+test('PATCH /api/items/:id', async () => {
+  const items = await request(app).get('/api/items')
+  const item = items.body.data[0]
+  const updatedItem = {
+    quantity: 6
+  }
+
+  const response = await request(app).patch(`/api/items/${item.id}`).send(updatedItem)
+  expect(response.body.data.quantity).toBe(6)
 })

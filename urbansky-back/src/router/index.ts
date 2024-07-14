@@ -53,7 +53,7 @@ router.post('/items', async (req: Request, res: Response) => {
   }
 });
 
-router.patch('/item/:id', async (req: Request, res: Response) => {
+router.patch('/items/:id', async (req: Request, res: Response) => {
   try {
     const updatedItem = await ItemModel.update(req.params.id, req.body)
     res.json({
@@ -67,7 +67,7 @@ router.patch('/item/:id', async (req: Request, res: Response) => {
   }
 })
 
-router.delete('/item/:id', async (req: Request, res: Response) => {
+router.delete('/items/:id', async (req: Request, res: Response) => {
   try {
     res.json({
       data: await ItemModel.delete(req.params.id),
