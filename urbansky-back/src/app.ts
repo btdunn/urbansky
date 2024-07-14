@@ -14,3 +14,5 @@ app.use('/api', router)
 app.listen(port, async () => {
   console.log(`I'm listening on port ${port}`)
 })
+
+export default app

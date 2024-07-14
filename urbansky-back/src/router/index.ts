@@ -40,12 +40,6 @@ router.get('/items/:id', async (req: Request, res: Response) => {
 });
 
 router.post('/items', async (req: Request, res: Response) => {
-  // if (!req.body.id) {
-  //   res.status(400).json({
-  //     message: 'Bad Request',
-  //   });
-  // }
-
   try {
     const newItem = await ItemModel.create(req.body)
     res.json({
@@ -53,6 +47,32 @@ router.post('/items', async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Error creating item:', error)
+    res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }
+});
+
+router.patch('/item/:id', async (req: Request, res: Response) => {
+  try {
+    const updatedItem = await ItemModel.update(req.params.id, req.body)
+    res.json({
+      data: updatedItem,
+    });
+  } catch (error) {
+    console.error('Error creating item:', error)
+    res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  }
+})
+
+router.delete('/item/:id', async (req: Request, res: Response) => {
+  try {
+    res.json({
+      data: await ItemModel.delete(req.params.id),
+    });
+  } catch (error) {
     res.status(500).json({
       message: 'Internal Server Error',
     });
