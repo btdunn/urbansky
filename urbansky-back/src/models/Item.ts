@@ -17,12 +17,13 @@ export class ItemModel extends Model {
     });
   }
 
-  public static findBySerial(serial: number): Promise<Item> {
-    return this.findBy<
-      {
-        serial: number;
-      },
-      Item
-    >({ serial });
-  }
+  // could be a useful feature in a future release?
+  // public static findBySerial(serial: number): Promise<Item> {
+  //   return this.findBy<
+  //     {
+  //       serial: number;
+  //     },
+  //     Item
+  //   >({ serial });
+  // }
 }
