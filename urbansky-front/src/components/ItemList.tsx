@@ -49,23 +49,27 @@ const ItemsList: React.FC = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className=" w-full h-full">
-      <ul className="float-left w-5/6">
+    <div className="flex relative md:flex w-full">
+      <ul className="w-3/6 min-w-0">
         {items.map(item => (
-          <li key={item.serial}>
-            <div onClick={() => handleClick()} className="flex flex-col w-3/6 p-4 mt-4 gap-y-2 border-2 border-gray-800 hover:border-gray-500 rounded-xl cursor-pointer">
-                <h2 className="text-md">{'>> ' + item.name}</h2>
-                <p className="text-sm">{'current quantity: ' + item.quantity}</p>
+          <li onClick={() => handleClick()} key={item.serial}>
+            <div className="flex flex-col w-4/6 p-4 mt-4 gap-y-2 border-2 border-gray-800 hover:border-gray-500 rounded-xl cursor-pointer">
+                <div className="flex relative">
+                  <h2 className="text-sm">{'>> ' + item.name}</h2>
+                  <p className="absolute text-xs right-0 top-0">{'x ' + item.quantity}</p>
+                </div>
               <p className="text-xs">{item.description}</p>
-
             </div>
           </li>
         ))}
-        <li className="mt-4">end</li>
       </ul>
-      {visible && <div className="w-full">
-        <h1 className="text-xl">BOOM</h1>
-      </div>}
+      <div className="sticky w-3/6 h-5/6 min-w-0 top-0 p-4">
+        {visible && 
+          <div className="p-4 border-2 border-gray-800 rounded-xl">
+            hi
+          </div>
+        }
+      </div>
     </div>
   );
 };

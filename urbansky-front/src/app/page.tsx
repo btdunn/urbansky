@@ -3,13 +3,12 @@ import ItemsList from "@/components/ItemList";
 const HomePage: React.FC = () => {
   return (
     <main>
-      <div className="relative md:flex h-screen overflow-hidden p-4 no-scollbar">
-        <div className="flex flex-col w-40 gap-y-4">
+      <div className="relative md:flex h-screen overflow-hidden no-scollbar">
+        <div className="flex flex-col w-40 gap-y-4 p-4">
           <h1 className="text-xl uppercase">Urban Sky </h1>
           <h2 className="text-lg">Inventory Management System</h2>
         </div>
         <div>
-          <h2 className="text-xl ml-4">Current Inventory</h2>
           <div className="w-full flex-1 p-4 text-2xl font-bold h-screen overflow-y-auto no-scrollbar">
             <ItemsList />
           </div>
