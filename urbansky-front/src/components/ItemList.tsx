@@ -17,8 +17,12 @@ const ItemsList: React.FC = () => {
   const [currentItem, setCurrentItem] = useState<Item | null>()
   const [editting, setEditting] = useState<boolean>(false)
   const [deleting, setDeleting] = useState<boolean>(false)
+  const editName = React.useRef()
+  const editSerial = React.useRef()
+  const editDescription = React.useRef()
+  const editQuantity = React.useRef()
 
-  const api = 'http://back-end:3001/api' || 'http://localhost:3001/api'
+  const api = 'http://localhost:3001/api'
   
   useEffect(() => {
     const fetchItems = async () => {
@@ -38,24 +42,30 @@ const ItemsList: React.FC = () => {
     
     
     fetchItems();
-  }, [items]);
+  }, [api, items]);
 
-  type FormData = yup.InferType<typeof schema>
+  type FormData = yup.InferType<typeof editSchema | typeof newSchema>
 
-  const schema = yup.object({
+  const newSchema = yup.object({
     serial: yup.number().required().positive(),
     name: yup.string().required(),
     description: yup.string().required(),
     quantity: yup.number().required().positive()
   })
+
+  const editSchema = yup.object({
+    serial: yup.number().optional().positive(),
+    name: yup.string().optional(),
+    description: yup.string().optional(),
+    quantity: yup.number().optional().positive()
+  })
   
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: yupResolver(schema)
+    resolver: yupResolver(editting ? editSchema : newSchema)
   });
 
   const onSubmitEdit = async (data: FormData) => {
     setLoading(true);
-    console.log('hit')
     try {
       if (currentItem) {
         console.log('hit', currentItem)
@@ -70,11 +80,8 @@ const ItemsList: React.FC = () => {
       if (!response.ok) {
         throw new Error('Failed to update item');
       }
-
-      const updatedItem = await response.json();
-      setItems((prevItems) =>
-        prevItems.map((item) => (item.id === currentItem.id ? updatedItem : item))
-      );
+      const newItem = await response.json();
+      setItems((prevItems) => [...prevItems, newItem]);
     };
     } catch (error: any) {
       setError(error.message);
