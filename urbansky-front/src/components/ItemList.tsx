@@ -17,10 +17,6 @@ const ItemsList: React.FC = () => {
   const [currentItem, setCurrentItem] = useState<Item | null>()
   const [editting, setEditting] = useState<boolean>(false)
   const [deleting, setDeleting] = useState<boolean>(false)
-  const editName = React.useRef()
-  const editSerial = React.useRef()
-  const editDescription = React.useRef()
-  const editQuantity = React.useRef()
 
   const api = 'http://localhost:3001/api'
   

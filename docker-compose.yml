@@ -1,21 +1,20 @@
-version: '3'
-
 services: 
 
   back-end:
     build: 
       context: urbansky-back
-    container_name: back-end
     working_dir: /usr/src/app
-    networks: 
-      - node-network
     volumes: 
       - ./urbansky-back:/usr/src/app
     tty: true
     ports: 
       - "3001:3001"
     environment:
-      - PORT=3001
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASSWORD=1234
     command: npm run dev
     depends_on:
        - db
@@ -23,10 +22,7 @@ services:
   front-end:
     build: 
       context: urbansky-front
-    container_name: front-end
     working_dir: /usr/src/app
-    networks: 
-      - node-network
     volumes: 
       - ./urbansky-front:/usr/src/app
     tty: true
@@ -41,27 +37,9 @@ services:
     tty: true
     volumes:
       - ./data:/var/lib/postgresql/data
-    environment: 
-      - POSTGRES_PASSWORD=1234
     ports: 
       - "5432:5432"
-    networks: 
-      - node-network
-
-  nginx:
-    build: 
-      context: nginx
-    container_name: nginx
-    restart: always
-    tty: true
-    ports: 
-      - "8080:80"
-    networks: 
-      - node-network
-    depends_on:
-       - back-end
-       - front-end
-  
-networks: 
-  node-network:
-    driver: bridge
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_API=postgres
