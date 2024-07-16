@@ -1,19 +1,24 @@
 'use client'
 
+import * as yup from "yup";
+
 import React, { useEffect, useState } from 'react';
+import { SubmitHandler, useForm } from "react-hook-form";
 
 import Item from '../types/types';
+import { yupResolver } from '@hookform/resolvers/yup';
 
 const ItemsList: React.FC = () => {
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [visible, setVisible] = useState<boolean>(false)
+  const [visibleNewItemForm, setVisibleNewItemForm] = useState<boolean>(false)
   const [currentItem, setCurrentItem] = useState<Item | null>()
   const [editting, setEditting] = useState<boolean>(false)
-
+  
   const api = 'http://localhost:3001/api'
-
+  
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -29,17 +34,37 @@ const ItemsList: React.FC = () => {
         setLoading(false);
       }
     };
-
+    
+    
     fetchItems();
   }, []);
 
+  type FormData = yup.InferType<typeof schema>
+
+  const schema = yup.object({
+    serial: yup.number().required().positive(),
+    name: yup.string().required(),
+    description: yup.string().required(),
+    quantity: yup.number().required().positive()
+  })
+  
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: yupResolver(schema)
+  });
+  const onSubmitEdit = (data: FormData) => console.log(data);
+  const onSubmitNew = (data: FormData) => console.log(data);
+    
   const handleClick = (item: Item) => {
     setVisible(true)
     setCurrentItem(item)
   }
 
-  const editItem = (item: Item) => {
+  const editItem = () => {
     setEditting(true)
+  }
+
+  const showNewItemForm = () => {
+    setVisibleNewItemForm(true)
   }
 
   if (loading) return <div>Loading...</div>;
@@ -60,35 +85,35 @@ const ItemsList: React.FC = () => {
           </li>
         ))}
       </ul>
-      <div className="sticky w-3/6 h-5/6 min-w-0 top-0 p-4">
+      <div className="sticky flex flex-col w-3/6 h-5/6 min-w-0 top-0 p-4 gap-y-4">
         {visible && 
           <div className="flex flex-col relative w-96 p-4 border-2 border-gray-800 rounded-xl gap-y-4">
             {currentItem &&
               <>
                 {editting ?
                   <>
-                    <form>
+                    <form onSubmit={handleSubmit(onSubmitEdit)}>
                       <div className="relative w-full max-w-lg">
                         <div onClick={() => setEditting(false)} className="absolute font-normal text-xl right-0 top-0 pt-2 pr-4 cursor-pointer hover:color-red-500">X</div>
                         <div className="flex flex-col gap-y-2 p-4">
                           <label className="block uppercase text-xs font-bold mb-2">Name</label>
-                          <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white text-xs" type="text" placeholder={currentItem.name} />
+                          <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white text-xs" type="text" placeholder={currentItem.name} {...register("name")} />
                           <label className="block uppercase text-xs font-bold mb-2">Serial Number</label>
-                          <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white text-xs" type="text" placeholder={currentItem.serial.toString()} />
+                          <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white text-xs" type="text" placeholder={currentItem.serial.toString()} {...register("serial", {min: 0})} />
                           <label className="block uppercase text-xs font-bold mb-2">Quantity</label>
-                          <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white text-xs" type="text" placeholder={currentItem.quantity.toString()} />
+                          <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white text-xs" type="text" placeholder={currentItem.quantity.toString()} {...register("quantity")} />
                           <label className="block uppercase text-xs font-bold mb-2">Description</label>
-                          <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white text-xs" type="text" placeholder={currentItem.description} />
+                          <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white text-xs" type="text" placeholder={currentItem.description} {...register("description")} />
                         </div>
                         <div className="flex flex-row gap-x-2 pr-4 pl-4">
-                          <button className="flex-shrink-0 bg-gray-500 hover:bg-gray-700 border-gray-500 hover:border-gray-700 text-sm border-4 text-white py-1 px-2 rounded" type="button">Submit</button>
+                          <button className="flex-shrink-0 bg-gray-500 hover:bg-gray-700 border-gray-500 hover:border-gray-700 text-sm border-4 text-white py-1 px-2 rounded" type="submit">Submit</button>
                         </div>
                       </div>
                     </form>
                   </>
                   :
                   <>
-                    <div onClick={() => editItem(currentItem && currentItem)} className="absolute font-normal text-xs right-0 top-0 p-4 cursor-pointer">edit</div>
+                    <div onClick={() => editItem()} className="absolute font-normal text-xs right-0 top-0 p-4 cursor-pointer">edit</div>
                     <h2 className="text-xl">{currentItem && currentItem.name}</h2><div className="flex gap-x-2">
                     <p className="font-normal text-sm">Quantity On Hand:</p>
                     <p className="font-normal text-sm">{currentItem && currentItem.quantity}</p>
@@ -102,6 +127,34 @@ const ItemsList: React.FC = () => {
             }
           </div>
         }
+          <div>
+          {visibleNewItemForm ?
+            <form className="w-96 p-4 border-2 border-gray-800 rounded-xl" onSubmit={handleSubmit(onSubmitNew)}>
+              <div className="relative w-full max-w-lg">
+                <div onClick={() => setVisibleNewItemForm(false)} className="absolute font-normal text-xl right-0 top-0 pt-2 pr-4 cursor-pointer hover:text-red-500">X</div>
+                <div className="flex flex-col gap-y-2 p-4">
+                  <label className="block uppercase text-xs font-bold mb-2">Name</label>
+                  <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white text-sm" type="text" placeholder={'Name'} {...register("name", { required: true })} />
+                  <p className="text-xs text-red-500 mb-2">{errors.name?.message && 'Name is required'}</p>
+                  <label className="block uppercase text-xs font-bold mb-2">Serial Number</label>
+                  <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white text-sm" type="text" placeholder={'Serial Number'} {...register("serial", { required: true, min: 0})} />
+                  <p className="text-xs text-red-500 mb-2">{errors.serial?.message && 'Serial number is required'}</p>
+                  <label className="block uppercase text-xs font-bold mb-2">Quantity</label>
+                  <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white text-sm" type="text" placeholder='Quantity' {...register("quantity", { required: true })} />
+                  <p className="text-xs text-red-500 mb-2">{errors.quantity?.message && 'Quantity is required'}</p>
+                  <label className="block uppercase text-xs font-bold mb-2">Description</label>
+                  <input className="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white text-sm" type="text" placeholder='Description' {...register("description", { required: true })} />
+                  <p className="text-xs text-red-500 mb-2">{errors.description?.message && 'Description is required'}</p>
+                </div>
+                <div className="flex flex-row gap-x-2 pr-4 pl-4">
+                  <button className="flex-shrink-0 bg-gray-500 hover:bg-gray-700 border-gray-500 hover:border-gray-700 text-sm border-4 text-white py-1 px-2 rounded" type="submit">Submit</button>
+                </div>
+              </div>
+            </form>
+          :
+            <button onClick={showNewItemForm} className="flex-shrink-0 bg-gray-500 hover:bg-gray-700 border-gray-500 hover:border-gray-700 text-sm border-4 text-white py-1 px-2 rounded-full" type="submit">New Item</button>
+          }
+        </div>
       </div>
     </div>
   );
