@@ -18,7 +18,7 @@ const ItemsList: React.FC = () => {
   const [editting, setEditting] = useState<boolean>(false)
   const [deleting, setDeleting] = useState<boolean>(false)
 
-  const api = 'http://localhost:3001/api'
+  const api = 'http://back-end:3001/api' || 'http://localhost:3001/api'
   
   useEffect(() => {
     const fetchItems = async () => {
@@ -55,9 +55,10 @@ const ItemsList: React.FC = () => {
 
   const onSubmitEdit = async (data: FormData) => {
     setLoading(true);
-    
+    console.log('hit')
     try {
       if (currentItem) {
+        console.log('hit', currentItem)
       const response = await fetch(`${api}/items/${currentItem.id}`, {
         method: 'PATCH',
         headers: {
