@@ -16,7 +16,8 @@ const ItemsList: React.FC = () => {
   const [visibleNewItemForm, setVisibleNewItemForm] = useState<boolean>(false)
   const [currentItem, setCurrentItem] = useState<Item | null>()
   const [editting, setEditting] = useState<boolean>(false)
-  
+  const [deleting, setDeleting] = useState<boolean>(false)
+
   const api = 'http://localhost:3001/api'
   
   useEffect(() => {
@@ -37,7 +38,7 @@ const ItemsList: React.FC = () => {
     
     
     fetchItems();
-  }, []);
+  }, [items]);
 
   type FormData = yup.InferType<typeof schema>
 
@@ -51,9 +52,58 @@ const ItemsList: React.FC = () => {
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: yupResolver(schema)
   });
-  const onSubmitEdit = (data: FormData) => console.log(data);
-  const onSubmitNew = (data: FormData) => console.log(data);
+
+  const onSubmitEdit = async (data: FormData) => {
+    setLoading(true);
     
+    try {
+      if (currentItem) {
+      const response = await fetch(`${api}/items/${currentItem.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update item');
+      }
+
+      const updatedItem = await response.json();
+      setItems((prevItems) =>
+        prevItems.map((item) => (item.id === currentItem.id ? updatedItem : item))
+      );
+    };
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSubmitNew = async (data: FormData) => {
+    setLoading(true)
+    try {
+      const response = await fetch(`${api}/items`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const newItem = await response.json();
+      setItems((prevItems) => [...prevItems, newItem]);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
   const handleClick = (item: Item) => {
     setVisible(true)
     setCurrentItem(item)
@@ -67,6 +117,30 @@ const ItemsList: React.FC = () => {
     setVisibleNewItemForm(true)
   }
 
+  const handleDelete = () => {
+    setDeleting(true)
+  }
+
+  const deleteItem = async (chosenItem: Item) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${api}/items/${chosenItem.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete item');
+      }
+
+      setItems((prevItems) => prevItems.filter(item => item.id !== chosenItem.id));
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+      setDeleting(false);
+    }
+  }
+    
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -74,7 +148,7 @@ const ItemsList: React.FC = () => {
     <div className="flex relative w-full">
       <ul className="w-3/6 min-w-0">
         {items.map(item => (
-          <li onClick={() => handleClick(item)} key={item.serial}>
+          <li onClick={() => handleClick(item)} key={item.id}>
             <div className="flex flex-col w-4/6 p-4 mt-4 gap-y-2 border-2 border-gray-800 hover:border-gray-500 rounded-xl cursor-pointer">
                 <div className="flex relative">
                   <h2 className="text-sm">{'>> ' + item.name}</h2>
@@ -92,6 +166,17 @@ const ItemsList: React.FC = () => {
               <>
                 {editting ?
                   <>
+                    {deleting ?
+                    <div className="relative w-full max-w-lg">
+                      <h3 className="text-normal font-bold">Delete this item?</h3>
+                      <p className="text-sm font-normal mt-4">This cannot be undone</p>
+                      <div className="flex flex-row gap-x-2 mt-4">
+                        <button className="flex-shrink-0 bg-red-500 hover:bg-red-700 border-red-500 hover:border-red-700 text-sm border-4 text-white py-1 px-2 rounded" onClick={() => deleteItem(currentItem)}>Delete</button>
+                        <button className="flex-shrink-0 bg-gray-500 hover:bg-gray-700 border-gray-500 hover:border-gray-700 text-sm border-4 text-white py-1 px-2 rounded" onClick={() => setDeleting(false)}>Cancel</button>
+                      </div>
+
+                    </div>
+                    :
                     <form onSubmit={handleSubmit(onSubmitEdit)}>
                       <div className="relative w-full max-w-lg">
                         <div onClick={() => setEditting(false)} className="absolute font-normal text-xl right-0 top-0 pt-2 pr-4 cursor-pointer hover:color-red-500">X</div>
@@ -107,9 +192,11 @@ const ItemsList: React.FC = () => {
                         </div>
                         <div className="flex flex-row gap-x-2 pr-4 pl-4">
                           <button className="flex-shrink-0 bg-gray-500 hover:bg-gray-700 border-gray-500 hover:border-gray-700 text-sm border-4 text-white py-1 px-2 rounded" type="submit">Submit</button>
+                          <button onClick={handleDelete} className="flex-shrink-0 bg-red-500 hover:bg-red-700 border-red-500 hover:border-red-700 text-sm border-4 text-white py-1 px-2 rounded" type="submit">Delete</button>
                         </div>
                       </div>
                     </form>
+                    }
                   </>
                   :
                   <>

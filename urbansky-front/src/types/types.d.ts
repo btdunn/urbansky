@@ -1,4 +1,5 @@
 type Item = {
+  id: number;
   serial: number;
   name: string;
   description: string;
